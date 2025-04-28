@@ -1,5 +1,4 @@
--- this comment tells sqlc that the name of the command is CreateUser 
--- and it returns 1 row
+-- sqlfluff: disable=L006,L009,L014
 -- name: CreateUser :one
 INSERT INTO users (id, created_at, updated_at, name)
 VALUES (
@@ -13,6 +12,12 @@ RETURNING *;
 -- name: GetUser :one
 SELECT * FROM users
 WHERE users.name = $1;
+-- sqlfluff: enable=L006,L009,L014
 
 -- name: DeleteAllUsers :exec
-TRUNCATE TABLE users;
+DELETE FROM users;
+
+
+-- name: GetUsers :many
+SELECT *
+  FROM users;

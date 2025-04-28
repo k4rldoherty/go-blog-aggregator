@@ -47,6 +47,11 @@ func main() {
 		log.Fatalf("error registering reset command: %v\n", err)
 		os.Exit(1)
 	}
+	err = appCommands.Register("users", command.HandlerUsers)
+	if err != nil {
+		log.Fatalf("error registering login command: %v\n", err)
+		os.Exit(1)
+	}
 
 	if len(os.Args) < 2 {
 		log.Fatalf("%v\n", err)

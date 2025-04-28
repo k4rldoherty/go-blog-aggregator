@@ -1,4 +1,5 @@
--- to run a migration navigate to the folder containing the migration you want to run and 
+-- to run a migration navigate to the folder containing the 
+-- migration you want to run and 
 -- run this command 
 -- goose postgres <connection string> up
 
