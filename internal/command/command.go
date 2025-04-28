@@ -1,9 +1,13 @@
 package command
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"time"
 
+	"github.com/google/uuid"
+	"github.com/k4rldoherty/rss-blog-aggregator/internal/database"
 	"github.com/k4rldoherty/rss-blog-aggregator/internal/state"
 )
 
@@ -47,9 +51,45 @@ func HandlerLogin(s *state.State, cmd Command) error {
 	if len(cmd.Args) != 1 {
 		return errors.New("incorrect number of args provided")
 	}
-	if err := s.Cfg.SetUser(cmd.Args[0]); err != nil {
+
+	user, err := s.Db.GetUser(context.Background(), cmd.Args[0])
+	if err != nil {
+		return err
+	}
+	if err := s.Cfg.SetUser(user.Name); err != nil {
 		return err
 	}
 	fmt.Println("Username set.")
+	return nil
+}
+
+func HandlerRegister(s *state.State, cmd Command) error {
+	if len(cmd.Args) != 1 {
+		return errors.New("incorrect number of args provided")
+	}
+	// Creates a struct of paramters to be used in the query
+	params := database.CreateUserParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      cmd.Args[0],
+	}
+	user, err := s.Db.CreateUser(context.Background(), params)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("User created. Name: %v ID: %v CreatedAt & UpdatedAt: %v", user.Name, user.ID, user.CreatedAt)
+	if err = s.Cfg.SetUser(user.Name); err != nil {
+		return err
+	}
+	return nil
+}
+
+func HandlerReset(s *state.State, cmd Command) error {
+	err := s.Db.DeleteAllUsers(context.Background())
+	if err != nil {
+		return err
+	}
+	fmt.Println("Database successfully reset.")
 	return nil
 }
