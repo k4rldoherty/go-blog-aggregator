@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/k4rldoherty/rss-blog-aggregator/internal/database"
+	"github.com/k4rldoherty/rss-blog-aggregator/internal/rss"
 	"github.com/k4rldoherty/rss-blog-aggregator/internal/state"
 )
 
@@ -106,5 +107,17 @@ func HandlerUsers(s *state.State, cmd Command) error {
 			fmt.Printf("* %v\n", v.Name)
 		}
 	}
+	return nil
+}
+
+func HandleAgg(s *state.State, cmd Command) error {
+	if len(cmd.Args) != 2 {
+		return errors.New("incorrect number of args provided")
+	}
+	feed, err := rss.FetchFeed(context.Background(), cmd.Args[1])
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", feed)
 	return nil
 }
