@@ -121,3 +121,41 @@ func HandleAgg(s *state.State, cmd Command) error {
 	fmt.Printf("%+v\n", feed)
 	return nil
 }
+
+func HandleAddFeed(s *state.State, cmd Command) error {
+	if len(cmd.Args) != 2 {
+		return errors.New("incorrect number of args provided")
+	}
+	loggedInUser, err := s.Db.GetUser(context.Background(), s.Cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+	params := database.CreateFeedParams{
+		ID:        uuid.New(),
+		UserID:    loggedInUser.ID,
+		Name:      cmd.Args[0],
+		Url:       cmd.Args[1],
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	feed, err := s.Db.CreateFeed(context.Background(), params)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", feed)
+	return nil
+}
+
+func HandleFeeds(s *state.State, cmd Command) error {
+	if len(cmd.Args) != 0 {
+		return errors.New("incorrect number of args provided")
+	}
+	feeds, err := s.Db.GetFeeds(context.Background())
+	if err != nil {
+		return err
+	}
+	for _, v := range feeds {
+		fmt.Printf("Feed Name: %v\nFeed Url: %v\nUser Name: %v \n\n", v.FeedName, v.Url, v.UserName)
+	}
+	return nil
+}

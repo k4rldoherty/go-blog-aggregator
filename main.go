@@ -57,6 +57,16 @@ func main() {
 		log.Fatalf("error registering agg command: %v\n", err)
 		os.Exit(1)
 	}
+	err = appCommands.Register("addfeed", command.HandleAddFeed)
+	if err != nil {
+		log.Fatalf("error registering addfeed command: %v\n", err)
+		os.Exit(1)
+	}
+	err = appCommands.Register("feeds", command.HandleFeeds)
+	if err != nil {
+		log.Fatalf("error registering feeds command: %v\n", err)
+		os.Exit(1)
+	}
 
 	if len(os.Args) < 2 {
 		log.Fatalf("%v\n", err)
