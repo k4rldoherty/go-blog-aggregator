@@ -52,7 +52,6 @@ func HandlerLogin(s *state.State, cmd Command) error {
 	if len(cmd.Args) != 1 {
 		return errors.New("incorrect number of args provided")
 	}
-
 	user, err := s.Db.GetUser(context.Background(), cmd.Args[0])
 	if err != nil {
 		return err
@@ -95,13 +94,13 @@ func HandlerReset(s *state.State, cmd Command) error {
 	return nil
 }
 
-func HandlerUsers(s *state.State, cmd Command) error {
+func HandlerUsers(s *state.State, cmd Command, loggedInUser database.User) error {
 	users, err := s.Db.GetUsers(context.Background())
 	if err != nil {
 		return err
 	}
 	for _, v := range users {
-		if v.Name == s.Cfg.CurrentUserName {
+		if v.Name == loggedInUser.Name {
 			fmt.Printf("* %v (current)\n", v.Name)
 		} else {
 			fmt.Printf("* %v\n", v.Name)
@@ -122,13 +121,9 @@ func HandleAgg(s *state.State, cmd Command) error {
 	return nil
 }
 
-func HandleAddFeed(s *state.State, cmd Command) error {
+func HandleAddFeed(s *state.State, cmd Command, loggedInUser database.User) error {
 	if len(cmd.Args) != 2 {
 		return errors.New("incorrect number of args provided")
-	}
-	loggedInUser, err := s.Db.GetUser(context.Background(), s.Cfg.CurrentUserName)
-	if err != nil {
-		return err
 	}
 	params := database.CreateFeedParams{
 		ID:        uuid.New(),
@@ -171,13 +166,9 @@ func HandleFeeds(s *state.State, cmd Command) error {
 	return nil
 }
 
-func HandleFollow(s *state.State, cmd Command) error {
+func HandleFollow(s *state.State, cmd Command, loggedInUser database.User) error {
 	if len(cmd.Args) != 1 {
 		return errors.New("incorrect number of args provided")
-	}
-	loggedInUser, err := s.Db.GetUser(context.Background(), s.Cfg.CurrentUserName)
-	if err != nil {
-		return err
 	}
 	feed, err := s.Db.GetFeedByURL(context.Background(), cmd.Args[0])
 	if err != nil {
@@ -198,13 +189,9 @@ func HandleFollow(s *state.State, cmd Command) error {
 	return nil
 }
 
-func HandleFollowing(s *state.State, cmd Command) error {
+func HandleFollowing(s *state.State, cmd Command, loggedInUser database.User) error {
 	if len(cmd.Args) != 0 {
 		return errors.New("incorrect number of args")
-	}
-	loggedInUser, err := s.Db.GetUser(context.Background(), s.Cfg.CurrentUserName)
-	if err != nil {
-		return err
 	}
 	followedFeeds, err := s.Db.GetFeedFollowsForUser(context.Background(), loggedInUser.ID)
 	if err != nil {

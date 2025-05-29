@@ -8,6 +8,7 @@ import (
 	"github.com/k4rldoherty/rss-blog-aggregator/internal/command"
 	"github.com/k4rldoherty/rss-blog-aggregator/internal/config"
 	"github.com/k4rldoherty/rss-blog-aggregator/internal/database"
+	"github.com/k4rldoherty/rss-blog-aggregator/internal/middleware"
 	"github.com/k4rldoherty/rss-blog-aggregator/internal/state"
 
 	// This is the postgres driver which allows the application to talk to the database
@@ -47,7 +48,7 @@ func main() {
 		log.Fatalf("error registering reset command: %v\n", err)
 		os.Exit(1)
 	}
-	err = appCommands.Register("users", command.HandlerUsers)
+	err = appCommands.Register("users", middleware.MiddlewareLoggedIn(command.HandlerUsers))
 	if err != nil {
 		log.Fatalf("error registering login command: %v\n", err)
 		os.Exit(1)
@@ -57,7 +58,7 @@ func main() {
 		log.Fatalf("error registering agg command: %v\n", err)
 		os.Exit(1)
 	}
-	err = appCommands.Register("addfeed", command.HandleAddFeed)
+	err = appCommands.Register("addfeed", middleware.MiddlewareLoggedIn(command.HandleAddFeed))
 	if err != nil {
 		log.Fatalf("error registering addfeed command: %v\n", err)
 		os.Exit(1)
@@ -67,12 +68,12 @@ func main() {
 		log.Fatalf("error registering feeds command: %v\n", err)
 		os.Exit(1)
 	}
-	err = appCommands.Register("follow", command.HandleFollow)
+	err = appCommands.Register("follow", middleware.MiddlewareLoggedIn(command.HandleFollow))
 	if err != nil {
 		log.Fatalf("error registering follow command: %v\n", err)
 		os.Exit(1)
 	}
-	err = appCommands.Register("following", command.HandleFollowing)
+	err = appCommands.Register("following", middleware.MiddlewareLoggedIn(command.HandleFollowing))
 	if err != nil {
 		log.Fatalf("error registering follow command: %v\n", err)
 		os.Exit(1)
