@@ -203,3 +203,19 @@ func HandleFollowing(s *state.State, cmd Command, loggedInUser database.User) er
 	}
 	return nil
 }
+
+func HandleUnfollow(s *state.State, cmd Command, loggedInUser database.User) error {
+	if len(cmd.Args) != 1 {
+		return errors.New("incorrect number of args")
+	}
+	unfollowFeedParams := database.UnfollowFeedParams{
+		UserID: loggedInUser.ID,
+		Url:    cmd.Args[0],
+	}
+	f, err := s.Db.UnfollowFeed(context.Background(), unfollowFeedParams)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("You have successfully unsubscribed from the feed with: %v \n", f.FeedID)
+	return nil
+}

@@ -78,6 +78,11 @@ func main() {
 		log.Fatalf("error registering follow command: %v\n", err)
 		os.Exit(1)
 	}
+	err = appCommands.Register("unfollow", middleware.MiddlewareLoggedIn(command.HandleUnfollow))
+	if err != nil {
+		log.Fatalf("error registering unfollow command: %v\n", err)
+		os.Exit(1)
+	}
 
 	if len(os.Args) < 2 {
 		log.Fatalf("%v\n", err)
