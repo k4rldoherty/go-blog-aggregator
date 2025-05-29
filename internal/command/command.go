@@ -142,6 +142,17 @@ func HandleAddFeed(s *state.State, cmd Command) error {
 	if err != nil {
 		return err
 	}
+	// Automatically make the user adding the feed follow the added feed.
+	followParams := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    loggedInUser.ID,
+		FeedID:    feed.ID,
+	}
+	if _, err = s.Db.CreateFeedFollow(context.Background(), followParams); err != nil {
+		return err
+	}
 	fmt.Printf("%+v\n", feed)
 	return nil
 }
@@ -156,6 +167,52 @@ func HandleFeeds(s *state.State, cmd Command) error {
 	}
 	for _, v := range feeds {
 		fmt.Printf("Feed Name: %v\nFeed Url: %v\nUser Name: %v \n\n", v.FeedName, v.Url, v.UserName)
+	}
+	return nil
+}
+
+func HandleFollow(s *state.State, cmd Command) error {
+	if len(cmd.Args) != 1 {
+		return errors.New("incorrect number of args provided")
+	}
+	loggedInUser, err := s.Db.GetUser(context.Background(), s.Cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+	feed, err := s.Db.GetFeedByURL(context.Background(), cmd.Args[0])
+	if err != nil {
+		return errors.New("feed does not exist, please add it before following using the add command")
+	}
+	params := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    loggedInUser.ID,
+		FeedID:    feed.ID,
+	}
+	feedFollow, err := s.Db.CreateFeedFollow(context.Background(), params)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%v -> %v\n", feedFollow.UserName, feedFollow.FeedName)
+	return nil
+}
+
+func HandleFollowing(s *state.State, cmd Command) error {
+	if len(cmd.Args) != 0 {
+		return errors.New("incorrect number of args")
+	}
+	loggedInUser, err := s.Db.GetUser(context.Background(), s.Cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+	followedFeeds, err := s.Db.GetFeedFollowsForUser(context.Background(), loggedInUser.ID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("All followed feeds for %v\n", loggedInUser.Name)
+	for _, v := range followedFeeds {
+		fmt.Println(v.UserName, " - ", v.FeedName)
 	}
 	return nil
 }

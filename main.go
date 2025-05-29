@@ -67,6 +67,16 @@ func main() {
 		log.Fatalf("error registering feeds command: %v\n", err)
 		os.Exit(1)
 	}
+	err = appCommands.Register("follow", command.HandleFollow)
+	if err != nil {
+		log.Fatalf("error registering follow command: %v\n", err)
+		os.Exit(1)
+	}
+	err = appCommands.Register("following", command.HandleFollowing)
+	if err != nil {
+		log.Fatalf("error registering follow command: %v\n", err)
+		os.Exit(1)
+	}
 
 	if len(os.Args) < 2 {
 		log.Fatalf("%v\n", err)
