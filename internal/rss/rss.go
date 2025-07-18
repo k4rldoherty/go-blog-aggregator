@@ -6,6 +6,11 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/k4rldoherty/rss-blog-aggregator/internal/database"
+	"github.com/k4rldoherty/rss-blog-aggregator/internal/state"
 )
 
 type RssFeed struct {
@@ -50,4 +55,33 @@ func FetchFeed(ctx context.Context, feedUrl string) (RssFeed, error) {
 		rssFeed.Channel.Item[i].Title = html.UnescapeString(rssFeed.Channel.Item[i].Title)
 	}
 	return rssFeed, nil
+}
+
+func ScrapeFeeds(ctx context.Context, s *state.State) error {
+	feed, err := s.Db.GetNextFeedToFetch(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = s.Db.MarkFeedFetched(ctx, feed.ID)
+	if err != nil {
+		return err
+	}
+	rssFeed, err := FetchFeed(ctx, feed.Url)
+	if err != nil {
+		return err
+	}
+	for _, item := range rssFeed.Channel.Item {
+		params := database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       item.Title,
+			Url:         item.Link,
+			Description: item.Desctiption,
+			PublishedAt: time.Now(),
+			FeedID:      feed.ID,
+		}
+		s.Db.CreatePost(ctx, params)
+	}
+	return nil
 }

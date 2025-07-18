@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -109,16 +110,22 @@ func HandlerUsers(s *state.State, cmd Command, loggedInUser database.User) error
 	return nil
 }
 
+// Long running process that gets rss feeds and prints the titles to the console
 func HandleAgg(s *state.State, cmd Command) error {
-	if len(cmd.Args) != 2 {
+	if len(cmd.Args) != 1 {
 		return errors.New("incorrect number of args provided")
 	}
-	feed, err := rss.FetchFeed(context.Background(), cmd.Args[1])
+	timeBetweenRequests, err := time.ParseDuration(cmd.Args[0])
 	if err != nil {
-		return err
+		return errors.New("failed to parse time")
 	}
-	fmt.Printf("%+v\n", feed)
-	return nil
+	ticker := time.NewTicker(timeBetweenRequests)
+	for ; ; <-ticker.C {
+		err := rss.ScrapeFeeds(context.Background(), s)
+		if err != nil {
+			return errors.New(err.Error())
+		}
+	}
 }
 
 func HandleAddFeed(s *state.State, cmd Command, loggedInUser database.User) error {
@@ -153,9 +160,6 @@ func HandleAddFeed(s *state.State, cmd Command, loggedInUser database.User) erro
 }
 
 func HandleFeeds(s *state.State, cmd Command) error {
-	if len(cmd.Args) != 0 {
-		return errors.New("incorrect number of args provided")
-	}
 	feeds, err := s.Db.GetFeeds(context.Background())
 	if err != nil {
 		return err
@@ -217,5 +221,30 @@ func HandleUnfollow(s *state.State, cmd Command, loggedInUser database.User) err
 		return err
 	}
 	fmt.Printf("You have successfully unsubscribed from the feed with: %v \n", f.FeedID)
+	return nil
+}
+
+func HandleBrowse(s *state.State, cmd Command, loggedInUser database.User) error {
+	limit := 2
+	if len(cmd.Args) == 1 {
+		newLimit, err := strconv.Atoi(cmd.Args[0])
+		if err != nil {
+			return errors.New("could not parse arg to int")
+		}
+		limit = newLimit
+	}
+
+	params := database.GetPostsForUserParams{
+		Limit:  int32(limit),
+		UserID: loggedInUser.ID,
+	}
+
+	p, err := s.Db.GetPostsForUser(context.Background(), params)
+	if err != nil {
+		return errors.New("could not get posts for user")
+	}
+	for _, post := range p {
+		fmt.Println(post.Title)
+	}
 	return nil
 }
