@@ -26,4 +26,4 @@ Before you can install and run `gator`, ensure you have the following installed 
 You can install the `gator` CLI tool directly using `go install`. This command compiles the source code and places the executable in your `$GOPATH/bin` directory, making it globally accessible.
 
 ```bash
-go install [github.com/k4rldoherty/rss-blog-aggregator](https://www.github.com/k4rldoherty/rss-blog-aggregator)
+go install [github.com/k4rldoherty/rss-blog-aggregator](https://github.com/k4rldoherty/rss-blog-aggregator)
